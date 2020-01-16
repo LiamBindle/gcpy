@@ -29,6 +29,23 @@ spc_categories = "benchmark_categories.json"
 emission_spc = "emission_species.json"
 emission_inv = "emission_inventories.json"
 
+def draw_major_grid_boxes(ax: plt.Axes, csgrid_list: list, **kwargs):
+    kwargs.setdefault('linewidth', 1.5)
+    kwargs.setdefault('color', 'black')
+    for i in range(6):
+        xx = csgrid_list[i]['lon_b']
+        xx[xx > 180] -= 360
+        yy = csgrid_list[i]['lat_b']
+
+        for x, y in zip([xx[0, :], xx[:, 0], xx[:, -1], xx[-1, :]], [yy[0, :], yy[:, 0], yy[:, -1], yy[-1, :]]):
+            idx = np.argwhere(np.diff(np.sign(x % 360 - 180))).flatten()
+            x360 = x % 360
+            idx = idx[(x360[idx] > 10) & (x360[idx] < 350)]
+            start = [0, *(idx + 1)]
+            end = [*(idx + 1), len(x)]
+            for s, e in zip(start, end):
+                ax.plot(x[s:e], y[s:e], transform=ccrs.PlateCarree(), **kwargs)
+
 
 def compare_single_level(
     refdata,
@@ -1217,6 +1234,17 @@ def compare_single_level(
                 cb.set_ticklabels(["Zero throughout domain"])
         cb.update_ticks()
         cb.set_label("unitless")
+
+
+        # =====================
+        # Draw major grid boxes
+        # =====================
+        draw_major_grid_boxes(ax0, regrid_list, color='red')
+        draw_major_grid_boxes(ax1, devgrid_list, color='red')
+        draw_major_grid_boxes(ax2, regrid_list, color='red')
+        draw_major_grid_boxes(ax3, devgrid_list, color='red')
+        draw_major_grid_boxes(ax4, regrid_list, color='red')
+        draw_major_grid_boxes(ax5, devgrid_list, color='red')
 
         # ==============================================================
         # Update the list of variables with significant differences.
@@ -3268,6 +3296,7 @@ def make_benchmark_conc_plots(
     ref_sg_params=None,
     dev_sg_params=None,
     is_restart_file=False,
+    cmpres=None,
 ):
     """
     Creates PDF files containing plots of species concentration
@@ -3453,7 +3482,8 @@ def make_benchmark_conc_plots(
                 extra_title_txt=extra_title_txt,
                 sigdiff_list=diff_sfc,
                 ref_sg_params=ref_sg_params,
-                dev_sg_params=dev_sg_params
+                dev_sg_params=dev_sg_params,
+                cmpres=cmpres
             )
             diff_sfc[:] = [v.replace("SpeciesConc_", "") for v in diff_sfc]
             add_nested_bookmarks_to_pdf(
@@ -3485,7 +3515,8 @@ def make_benchmark_conc_plots(
                 extra_title_txt=extra_title_txt,
                 sigdiff_list=diff_500,
                 ref_sg_params=ref_sg_params,
-                dev_sg_params=dev_sg_params
+                dev_sg_params=dev_sg_params,
+                cmpres=cmpres
             )
             diff_500[:] = [v.replace("SpeciesConc_", "") for v in diff_500]
             add_nested_bookmarks_to_pdf(
@@ -5611,6 +5642,7 @@ def get_troposphere_mask(ds):
         lev = np.int_(np.squeeze(values) - 1)
         lev_1d = lev.flatten()
 
+        # Create the tropospheric mask array
         # Create the tropospheric mask array
         for x in range(tropmask.shape[1]):
             tropmask[0 : lev_1d[x], x] = False
