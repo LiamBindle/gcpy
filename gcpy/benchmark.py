@@ -1292,6 +1292,8 @@ def compare_zonal_mean(
     log_yaxis=False,
     extra_title_txt=None,
     sigdiff_list=[],
+    ref_sg_params=None,
+    dev_sg_params=None,
 ):
 
     """
@@ -1584,13 +1586,19 @@ def compare_zonal_mean(
     if refgridtype == "ll":
         refgrid = make_grid_LL(refres)
     else:
-        [refgrid, regrid_list] = make_grid_CS(refres)
+        if ref_sg_params is None:
+            [refgrid, regrid_list] = make_grid_CS(refres)
+        else:
+            [refgrid, regrid_list] = make_grid_SG(refres, **ref_sg_params)
 
     # Dev
     if devgridtype == "ll":
         devgrid = make_grid_LL(devres)
     else:
-        [devgrid, devgrid_list] = make_grid_CS(devres)
+        if dev_sg_params is None:
+            [devgrid, devgrid_list] = make_grid_CS(devres)
+        else:
+            [devgrid, devgrid_list] = make_grid_SG(devres, **dev_sg_params)
 
     # Comparison
     cmpgrid = make_grid_LL(cmpres)
@@ -1606,18 +1614,30 @@ def compare_zonal_mean(
                 refres, cmpres, weightsdir=weightsdir, reuse_weights=True
             )
         else:
-            refregridder_list = make_regridder_C2L(
-                refres, cmpres, weightsdir=weightsdir, reuse_weights=True
-            )
+            if cmpgridtype == "cs":
+                print(
+                    "ERROR: CS to CS regridding is not yet implemented in gcpy. Ref and dev cubed sphere grids must be the same resolution, or pass cmpres to compare_single_level as a lat-lon grid resolution."
+                )
+                return
+            else:
+                refregridder_list = make_regridder_C2L(
+                    refres, cmpres, weightsdir=weightsdir, reuse_weights=True, sg_params=ref_sg_params
+                )
     if regriddev:
         if devgridtype == "ll":
             devregridder = make_regridder_L2L(
                 devres, cmpres, weightsdir=weightsdir, reuse_weights=True
             )
         else:
-            devregridder_list = make_regridder_C2L(
-                devres, cmpres, weightsdir=weightsdir, reuse_weights=True
-            )
+            if cmpgridtype == "cs":
+                print(
+                    "ERROR: CS to CS regridding is not yet implemented in gcpy. Ref and dev cubed sphere grids must be the same resolution, or pass cmpres to compare_single_level as a lat-lon grid resolution."
+                )
+                return
+            else:
+                devregridder_list = make_regridder_C2L(
+                    devres, cmpres, weightsdir=weightsdir, reuse_weights=True, sg_params=dev_sg_params
+                )
 
     # ==================================================================
     # Create pdf, if savepdf is passed as True
@@ -3549,6 +3569,9 @@ def make_benchmark_conc_plots(
                 log_color_scale=log_color_scale,
                 extra_title_txt=extra_title_txt,
                 sigdiff_list=diff_zm,
+                ref_sg_params=ref_sg_params,
+                dev_sg_params=dev_sg_params,
+                cmpres=cmpres
             )
             diff_zm[:] = [v.replace("SpeciesConc_", "") for v in diff_zm]
             add_nested_bookmarks_to_pdf(
@@ -3576,6 +3599,9 @@ def make_benchmark_conc_plots(
                 log_yaxis=True,
                 extra_title_txt=extra_title_txt,
                 log_color_scale=log_color_scale,
+                ref_sg_params=ref_sg_params,
+                dev_sg_params=dev_sg_params,
+                cmpres=cmpres
             )
             add_nested_bookmarks_to_pdf(
                 pdfname, filecat, catdict, warninglist, remove_prefix="SpeciesConc_"
@@ -3630,6 +3656,9 @@ def make_benchmark_emis_plots(
     flip_dev=False,
     log_color_scale=False,
     sigdiff_files=None,
+    ref_sg_params=None,
+    dev_sg_params=None,
+    cmpres=None,
 ):
     """
     Creates PDF files containing plots of emissions for model
@@ -3806,6 +3835,9 @@ def make_benchmark_emis_plots(
             pdfname=pdfname,
             log_color_scale=log_color_scale,
             extra_title_txt=extra_title_txt,
+            ref_sg_params=ref_sg_params,
+            dev_sg_params=dev_sg_params,
+            cmpres=cmpres
         )
         add_bookmarks_to_pdf(pdfname, varlist, remove_prefix="Emis", verbose=verbose)
         return
@@ -3869,6 +3901,9 @@ def make_benchmark_emis_plots(
                 log_color_scale=log_color_scale,
                 extra_title_txt=extra_title_txt,
                 sigdiff_list=diff_emis,
+                ref_sg_params=ref_sg_params,
+                dev_sg_params=dev_sg_params,
+                cmpres=cmpres
             )
             add_bookmarks_to_pdf(
                 pdfname, varnames, remove_prefix="Emis", verbose=verbose
@@ -3963,6 +3998,9 @@ def make_benchmark_emis_plots(
                 flip_dev=flip_dev,
                 log_color_scale=log_color_scale,
                 extra_title_txt=extra_title_txt,
+                ref_sg_params=ref_sg_params,
+                dev_sg_params=dev_sg_params,
+                cmpres=cmpres
             )
             add_nested_bookmarks_to_pdf(pdfname, filecat, emisdict, warninglist)
 
@@ -4124,6 +4162,9 @@ def make_benchmark_jvalue_plots(
     flip_dev=False,
     log_color_scale=False,
     sigdiff_files=None,
+    ref_sg_params=None,
+    dev_sg_params=None,
+    cmpres=None,
 ):
     """
     Creates PDF files containing plots of J-values for model
@@ -4345,6 +4386,9 @@ def make_benchmark_jvalue_plots(
             log_color_scale=log_color_scale,
             extra_title_txt=extra_title_txt,
             sigdiff_list=diff_sfc,
+            ref_sg_params=ref_sg_params,
+            dev_sg_params=dev_sg_params,
+            cmpres=cmpres
         )
         diff_sfc[:] = [v.replace(prefix, "") for v in diff_sfc]
         add_bookmarks_to_pdf(pdfname, varlist, remove_prefix=prefix, verbose=verbose)
@@ -4370,6 +4414,9 @@ def make_benchmark_jvalue_plots(
             log_color_scale=log_color_scale,
             extra_title_txt=extra_title_txt,
             sigdiff_list=diff_500,
+            ref_sg_params=ref_sg_params,
+            dev_sg_params=dev_sg_params,
+            cmpres=cmpres
         )
         diff_500[:] = [v.replace(prefix, "") for v in diff_500]
         add_bookmarks_to_pdf(pdfname, varlist, remove_prefix=prefix, verbose=verbose)
@@ -4396,6 +4443,9 @@ def make_benchmark_jvalue_plots(
             log_color_scale=log_color_scale,
             extra_title_txt=extra_title_txt,
             sigdiff_list=diff_zm,
+            ref_sg_params=ref_sg_params,
+            dev_sg_params=dev_sg_params,
+            cmpres=cmpres
         )
         diff_zm[:] = [v.replace(prefix, "") for v in diff_zm]
         add_bookmarks_to_pdf(pdfname, varlist, remove_prefix=prefix, verbose=verbose)
@@ -4422,6 +4472,9 @@ def make_benchmark_jvalue_plots(
             flip_dev=flip_dev,
             extra_title_txt=extra_title_txt,
             log_color_scale=log_color_scale,
+            ref_sg_params=ref_sg_params,
+            dev_sg_params=dev_sg_params,
+            cmpres=cmpres
         )
         add_bookmarks_to_pdf(pdfname, varlist, remove_prefix=prefix, verbose=verbose)
 
@@ -4471,6 +4524,9 @@ def make_benchmark_aod_plots(
     verbose=False,
     log_color_scale=False,
     sigdiff_files=None,
+    ref_sg_params=None,
+    dev_sg_params=None,
+    cmpres=None,
 ):
     """
     Creates PDF files containing plots of column aerosol optical
@@ -4721,6 +4777,9 @@ def make_benchmark_aod_plots(
         log_color_scale=log_color_scale,
         extra_title_txt=extra_title_txt,
         sigdiff_list=diff_aod,
+        ref_sg_params=ref_sg_params,
+        dev_sg_params=dev_sg_params,
+        cmpres=cmpres
     )
     diff_aod[:] = [v.replace("Column_AOD_", "") for v in diff_aod]
     add_bookmarks_to_pdf(
