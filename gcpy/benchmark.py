@@ -17,7 +17,7 @@ import matplotlib.ticker as mticker
 from matplotlib.backends.backend_pdf import PdfPages
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from .plot import WhGrYlRd
-from .grid.horiz import make_grid_LL, make_grid_CS
+from .grid.horiz import make_grid_LL, make_grid_CS, make_grid_SG
 from .grid.regrid import make_regridder_C2L, make_regridder_L2L
 from .grid.gc_vertical import GEOS_72L_grid
 from . import core
@@ -284,13 +284,19 @@ def compare_single_level(
     if refgridtype == "ll":
         refgrid = make_grid_LL(refres)
     else:
-        [refgrid, regrid_list] = make_grid_CS(refres)
+        if ref_sg_params is None:
+            [refgrid, regrid_list] = make_grid_CS(refres)
+        else:
+            [refgrid, regrid_list] = make_grid_SG(refres, **ref_sg_params)
 
     # Dev
     if devgridtype == "ll":
         devgrid = make_grid_LL(devres)
     else:
-        [devgrid, devgrid_list] = make_grid_CS(devres)
+        if dev_sg_params is None:
+            [devgrid, devgrid_list] = make_grid_CS(devres)
+        else:
+            [devgrid, devgrid_list] = make_grid_SG(devres, **dev_sg_params)
 
     # Comparison
     if cmpgridtype == "ll":
@@ -3261,6 +3267,7 @@ def make_benchmark_conc_plots(
     sigdiff_files=None,
     ref_sg_params=None,
     dev_sg_params=None,
+    is_restart_file=False,
 ):
     """
     Creates PDF files containing plots of species concentration
@@ -3354,19 +3361,24 @@ def make_benchmark_conc_plots(
     # Get a list of variables that GCPy should not read
     skip_vars = core.skip_these_vars()
 
+    if is_restart_file:
+        species_prefix="SPC_"
+    else:
+        species_prefix="SpeciesConc_"
+
     # Ref dataset
     try:
         refds = xr.open_dataset(ref, drop_variables=skip_vars)
     except FileNotFoundError:
         raise FileNotFoundError("Could not find Ref file: {}".format(ref))
-    refds = core.add_lumped_species_to_dataset(refds, verbose=verbose)
+    refds = core.add_lumped_species_to_dataset(refds, verbose=verbose, prefix=species_prefix)
 
     # Dev dataset
     try:
         devds = xr.open_dataset(dev, drop_variables=skip_vars)
     except FileNotFoundError:
         raise FileNotFoundError("Could not find Dev file: {}!".format(dev))
-    devds = core.add_lumped_species_to_dataset(devds, verbose=verbose)
+    devds = core.add_lumped_species_to_dataset(devds, verbose=verbose, prefix=species_prefix)
 
     catdict = get_species_categories()
 
@@ -3403,7 +3415,7 @@ def make_benchmark_conc_plots(
         warninglist = []
         for subcat in catdict[filecat]:
             for spc in catdict[filecat][subcat]:
-                varname = "SpeciesConc_" + spc
+                varname = species_prefix + spc
                 if varname not in refds.data_vars or varname not in devds.data_vars:
                     warninglist.append(varname)
                     continue

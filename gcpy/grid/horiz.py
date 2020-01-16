@@ -25,9 +25,9 @@ def make_grid_CS(csres):
     csgrid = csgrid_GMAO(csres)
     csgrid_list = [None]*6
     for i in range(6):
-        csgrid_list[i] = {'lat': csgrid['lat'][i], 
+        csgrid_list[i] = {'lat': csgrid['lat'][i],
                           'lon': csgrid['lon'][i],
-                          'lat_b': csgrid['lat_b'][i], 
+                          'lat_b': csgrid['lat_b'][i],
                           'lon_b': csgrid['lon_b'][i]}
     return [csgrid, csgrid_list]
 
@@ -49,6 +49,11 @@ def make_grid_SG(csres, stretch_factor, target_lon, target_lat):
                           'lon': lon,
                           'lat_b': lat_b,
                           'lon_b': lon_b}
+    for i in range(6):
+        csgrid['lat'][i] = csgrid_list[i]['lat']
+        csgrid['lon'][i] = csgrid_list[i]['lon']
+        csgrid['lat_b'][i] = csgrid_list[i]['lat_b']
+        csgrid['lon_b'][i] = csgrid_list[i]['lon_b']
     return [csgrid, csgrid_list]
 
 
