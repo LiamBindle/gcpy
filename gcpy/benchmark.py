@@ -46,6 +46,11 @@ def draw_major_grid_boxes(ax: plt.Axes, csgrid_list: list, **kwargs):
             for s, e in zip(start, end):
                 ax.plot(x[s:e], y[s:e], transform=ccrs.PlateCarree(), **kwargs)
 
+def draw_region_of_study(ax: plt.Axes, x, y, **kwargs):
+    kwargs.setdefault('linewidth', 1)
+    kwargs.setdefault('color', 'black')
+    kwargs.setdefault('linestyle', '--')
+    ax.plot([x[0], x[0], x[1], x[1], x[0]], [y[0], y[1], y[1], y[0], y[0]], **kwargs)
 
 def compare_single_level(
     refdata,
@@ -70,6 +75,8 @@ def compare_single_level(
     sigdiff_list=[],
     ref_sg_params=None,
     dev_sg_params=None,
+    x_extent=None,
+    y_extent=None,
 ):
     """
     Create single-level 3x2 comparison map plots for variables common 
@@ -623,9 +630,17 @@ def compare_single_level(
 
         # Create figures and axes objects
         # Also define the map projection that will be shown
-        figs, ((ax0, ax1), (ax2, ax3), (ax4, ax5)) = plt.subplots(
-            3, 2, figsize=[12, 14], subplot_kw={"projection": ccrs.PlateCarree()}
-        )
+        figs = plt.figure(figsize=[12, 14],)
+        gs = figs.add_gridspec(4, 2)
+        gs.update(left=0.08,right=0.92,top=0.9,bottom=0.05, wspace=0.3)
+        ax0 = figs.add_subplot(gs[0, 0], projection=ccrs.PlateCarree())
+        ax1 = figs.add_subplot(gs[0, 1], projection=ccrs.PlateCarree())
+        ax2 = figs.add_subplot(gs[1, 0], projection=ccrs.PlateCarree())
+        ax3 = figs.add_subplot(gs[1, 1], projection=ccrs.PlateCarree())
+        ax4 = figs.add_subplot(gs[2, 0], projection=ccrs.PlateCarree())
+        ax5 = figs.add_subplot(gs[2, 1], projection=ccrs.PlateCarree())
+        ax6 = figs.add_subplot(gs[3, :])
+
         # Give the figure a title
         offset = 0.96
         fontsize = 25
@@ -723,7 +738,7 @@ def compare_single_level(
         ax0.coastlines()
         if refgridtype == "ll":
             # Set top title for lat-lon plot
-            ax0.set_title("{} (Ref){}\n{}".format(refstr, subtitle_extra, refres))
+            ax0.set_title("{} (Ref)".format(refstr))
 
             # If all of the data is NaN, then plot as gray
             if ref_is_all_nan:
@@ -741,7 +756,7 @@ def compare_single_level(
             )
         else:
             # Set top title for cubed-sphere plot
-            ax0.set_title("{} (Ref){}\nc{}".format(refstr, subtitle_extra, refres))
+            ax0.set_title("{} (Ref)".format(refstr))
 
             # Mask the reference data
             masked_refdata = np.ma.masked_where(
@@ -822,7 +837,7 @@ def compare_single_level(
         ax1.coastlines()
         if devgridtype == "ll":
             # Set top title for lat-lon plot
-            ax1.set_title("{} (Dev){}\n{}".format(devstr, subtitle_extra, devres))
+            ax1.set_title("{} (Dev)".format(devstr))
 
             # If all of the data is NaN, then plot as gray
             if dev_is_all_nan:
@@ -840,7 +855,7 @@ def compare_single_level(
             )
         else:
             # Set top title for cubed-sphere plot
-            ax1.set_title("{} (Dev){}\nc{}".format(devstr, subtitle_extra, devres))
+            ax1.set_title("{} (Dev)".format(devstr))
 
             # Mask the data
             masked_devdata = np.ma.masked_where(
@@ -954,9 +969,9 @@ def compare_single_level(
                     cmap=cmap_nongray,
                 )
         if regridany:
-            ax2.set_title("Difference ({})\nDev - Ref, Dynamic Range".format(cmpres))
+            ax2.set_title("Dev - Ref, {}, Dynamic Range".format(cmpres))
         else:
-            ax2.set_title("Difference\nDev - Ref, Dynamic Range")
+            ax2.set_title("Dev - Ref, Dynamic Range")
 
         # Define the colorbar for the plot.  If absdiff is zero
         # everywhere or NaN everywhere, set a single tick in
@@ -1030,10 +1045,10 @@ def compare_single_level(
                 )
         if regridany:
             ax3.set_title(
-                "Difference ({})\nDev - Ref, Restricted Range [5%,95%]".format(cmpres)
+                "Dev - Ref, {}, Restricted Range [5%,95%]".format(cmpres)
             )
         else:
-            ax3.set_title("Difference\nDev - Ref, Restricted Range [5%,95%]")
+            ax3.set_title("Dev - Ref, Restricted Range [5%,95%]")
 
         # Define the colorbar for the plot.  If absdiff is zero
         # everywhere or NaN everywhere, set a single tick in
@@ -1136,12 +1151,12 @@ def compare_single_level(
 
         if regridany:
             ax4.set_title(
-                "Fractional Difference ({})\n(Dev-Ref)/Ref, Dynamic Range".format(
+                "(Dev-Ref)/Ref, {}, Dynamic Range".format(
                     cmpres
                 )
             )
         else:
-            ax4.set_title("Fractional Difference\n(Dev-Ref)/Ref, Dynamic Range")
+            ax4.set_title("(Dev-Ref)/Ref, Dynamic Range")
 
         # Define the colorbar If fracdiff will be zero everywhere
         # or undefined everywhere, put a single tick at the middle
@@ -1216,10 +1231,10 @@ def compare_single_level(
                 )
         if regridany:
             ax5.set_title(
-                "Fractional Difference ({})\n(Dev-Ref)/Ref, Fixed Range".format(cmpres)
+                "(Dev-Ref)/Ref, {}, Fixed Range".format(cmpres)
             )
         else:
-            ax5.set_title("Fractional Difference\n(Dev-Ref)/Ref, Fixed Range")
+            ax5.set_title("(Dev-Ref)/Ref, Fixed Range")
 
         # Define the colorbar for the plot.  If fracdiff will be zero
         # everywhere or undefined everywhere, put a single tick at the
@@ -1246,6 +1261,13 @@ def compare_single_level(
         draw_major_grid_boxes(ax4, regrid_list, color='red')
         draw_major_grid_boxes(ax5, devgrid_list, color='red')
 
+        draw_region_of_study(ax0, x_extent, y_extent)
+        draw_region_of_study(ax1, x_extent, y_extent)
+        draw_region_of_study(ax2, x_extent, y_extent)
+        draw_region_of_study(ax3, x_extent, y_extent)
+        draw_region_of_study(ax4, x_extent, y_extent)
+        draw_region_of_study(ax5, x_extent, y_extent)
+
         # ==============================================================
         # Update the list of variables with significant differences.
         # Criterion: abs(max(fracdiff)) > 0.1
@@ -1254,6 +1276,35 @@ def compare_single_level(
         # ==============================================================
         if np.abs(np.nanmax(fracdiff)) > 0.1:
             sigdiff_list.append(varname)
+
+
+
+        # plt.figure(figsize=[12, 14])
+        x_idx_0 = (np.abs(cmpgrid['lon'] - x_extent[0])).argmin()
+        x_idx_1 = (np.abs(cmpgrid['lon'] - x_extent[1])).argmin()
+        y_idx_0 = (np.abs(cmpgrid['lat'] - y_extent[0])).argmin()
+        y_idx_1 = (np.abs(cmpgrid['lat'] - y_extent[1])).argmin()
+        ref_value = np.array(ds_ref_cmp)[x_idx_0:x_idx_1, y_idx_0:y_idx_1]
+        dev_value = np.array(ds_dev_cmp)[x_idx_0:x_idx_1, y_idx_0:y_idx_1]
+        ax6.scatter(ref_value, dev_value)
+        ax6.set_xlabel('Ref [{}]'.format(units))
+        ax6.set_ylabel('Dev [{}]'.format(units))
+        ax6.set_aspect('equal', adjustable='box')
+        min_value = min(ref_value.min(), dev_value.min())
+        max_value = max(ref_value.max(), dev_value.max())
+        space = min_value*0.05
+        ax6.plot([0, max_value+space], [0, max_value+space], color='black')
+        ax6.set_xlim([min_value-space, max_value+space])
+        ax6.set_ylim([min_value-space, max_value+space])
+        ax6.set_xticks([min_value, (max_value - min_value)*1/3 + min_value, (max_value - min_value)*2/3 + min_value, max_value])
+        ax6.set_yticks([min_value, (max_value - min_value)*1/3 + min_value, (max_value - min_value)*2/3 + min_value, max_value])
+        ax6.ticklabel_format(scilimits=(-2,3))
+        ax6.set_aspect('equal', adjustable='box')
+        ax6.set_title("{} regridded to {} in region of interest".format(varname, cmpres))
+        #
+        # if savepdf:
+        #     pdf.savefig(plt.gcf())
+        #     plt.close(plt.gcf())
 
         # ==============================================================
         # Add this page of 6-panel plots to the PDF file
@@ -3317,6 +3368,8 @@ def make_benchmark_conc_plots(
     dev_sg_params=None,
     is_restart_file=False,
     cmpres=None,
+    x_extent=None,
+    y_extent=None,
 ):
     """
     Creates PDF files containing plots of species concentration
@@ -3503,7 +3556,9 @@ def make_benchmark_conc_plots(
                 sigdiff_list=diff_sfc,
                 ref_sg_params=ref_sg_params,
                 dev_sg_params=dev_sg_params,
-                cmpres=cmpres
+                cmpres=cmpres,
+                x_extent=x_extent,
+                y_extent=y_extent,
             )
             diff_sfc[:] = [v.replace("SpeciesConc_", "") for v in diff_sfc]
             add_nested_bookmarks_to_pdf(
