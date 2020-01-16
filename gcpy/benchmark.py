@@ -51,6 +51,8 @@ def compare_single_level(
     log_color_scale=False,
     extra_title_txt=None,
     sigdiff_list=[],
+    ref_sg_params=None,
+    dev_sg_params=None,
 ):
     """
     Create single-level 3x2 comparison map plots for variables common 
@@ -314,7 +316,7 @@ def compare_single_level(
                 return
             else:
                 refregridder_list = make_regridder_C2L(
-                    refres, cmpres, weightsdir=weightsdir, reuse_weights=True
+                    refres, cmpres, weightsdir=weightsdir, reuse_weights=True, sg_params=ref_sg_params
                 )
     if regriddev:
         if devgridtype == "ll":
@@ -329,7 +331,7 @@ def compare_single_level(
                 return
             else:
                 devregridder_list = make_regridder_C2L(
-                    devres, cmpres, weightsdir=weightsdir, reuse_weights=True
+                    devres, cmpres, weightsdir=weightsdir, reuse_weights=True, sg_params=dev_sg_params
                 )
 
     # =================================================================
@@ -3257,6 +3259,8 @@ def make_benchmark_conc_plots(
     use_cmap_RdBu=False,
     log_color_scale=False,
     sigdiff_files=None,
+    ref_sg_params=None,
+    dev_sg_params=None,
 ):
     """
     Creates PDF files containing plots of species concentration
@@ -3436,6 +3440,8 @@ def make_benchmark_conc_plots(
                 log_color_scale=log_color_scale,
                 extra_title_txt=extra_title_txt,
                 sigdiff_list=diff_sfc,
+                ref_sg_params=ref_sg_params,
+                dev_sg_params=dev_sg_params
             )
             diff_sfc[:] = [v.replace("SpeciesConc_", "") for v in diff_sfc]
             add_nested_bookmarks_to_pdf(
@@ -3466,6 +3472,8 @@ def make_benchmark_conc_plots(
                 log_color_scale=log_color_scale,
                 extra_title_txt=extra_title_txt,
                 sigdiff_list=diff_500,
+                ref_sg_params=ref_sg_params,
+                dev_sg_params=dev_sg_params
             )
             diff_500[:] = [v.replace("SpeciesConc_", "") for v in diff_500]
             add_nested_bookmarks_to_pdf(

@@ -4,6 +4,8 @@ import numpy as np
 from numpy import asarray
 from itertools import product
 
+from .stretched_grid import scs_transform
+
 INV_SQRT_3 = 1.0 / np.sqrt(3.0)
 ASIN_INV_SQRT_3 = np.arcsin(INV_SQRT_3)
 
@@ -28,6 +30,27 @@ def make_grid_CS(csres):
                           'lat_b': csgrid['lat_b'][i], 
                           'lon_b': csgrid['lon_b'][i]}
     return [csgrid, csgrid_list]
+
+def make_grid_SG(csres, stretch_factor, target_lon, target_lat):
+    csgrid = csgrid_GMAO(csres, offset=0)
+    csgrid_list = [None] * 6
+    for i in range(6):
+        lat = csgrid['lat'][i].flatten()
+        lon = csgrid['lon'][i].flatten()
+        lon, lat = scs_transform(lon, lat, stretch_factor, target_lon, target_lat)
+        lat = lat.reshape((csres, csres))
+        lon = lon.reshape((csres, csres))
+        lat_b = csgrid['lat_b'][i].flatten()
+        lon_b = csgrid['lon_b'][i].flatten()
+        lon_b, lat_b = scs_transform(lon_b, lat_b, stretch_factor, target_lon, target_lat)
+        lat_b = lat_b.reshape((csres + 1, csres + 1))
+        lon_b = lon_b.reshape((csres + 1, csres + 1))
+        csgrid_list[i] = {'lat': lat,
+                          'lon': lon,
+                          'lat_b': lat_b,
+                          'lon_b': lon_b}
+    return [csgrid, csgrid_list]
+
 
 def calc_rectilinear_lon_edge(lon_stride, center_at_180):
     """ Compute longitude edge vector for a rectilinear grid.
