@@ -3560,9 +3560,9 @@ def make_benchmark_conc_plots(
                 x_extent=x_extent,
                 y_extent=y_extent,
             )
-            diff_sfc[:] = [v.replace("SpeciesConc_", "") for v in diff_sfc]
+            diff_sfc[:] = [v.replace(species_prefix, "") for v in diff_sfc]
             add_nested_bookmarks_to_pdf(
-                pdfname, filecat, catdict, warninglist, remove_prefix="SpeciesConc_"
+                pdfname, filecat, catdict, warninglist, remove_prefix=species_prefix
             )
         # -----------------------
         # 500 hPa plots
@@ -3595,9 +3595,9 @@ def make_benchmark_conc_plots(
                 x_extent=x_extent,
                 y_extent=y_extent,
             )
-            diff_500[:] = [v.replace("SpeciesConc_", "") for v in diff_500]
+            diff_500[:] = [v.replace(species_prefix, "") for v in diff_500]
             add_nested_bookmarks_to_pdf(
-                pdfname, filecat, catdict, warninglist, remove_prefix="SpeciesConc_"
+                pdfname, filecat, catdict, warninglist, remove_prefix=species_prefix
             )
 
         # -----------------------
@@ -3630,9 +3630,9 @@ def make_benchmark_conc_plots(
                 dev_sg_params=dev_sg_params,
                 cmpres=cmpres
             )
-            diff_zm[:] = [v.replace("SpeciesConc_", "") for v in diff_zm]
+            diff_zm[:] = [v.replace(species_prefix, "") for v in diff_zm]
             add_nested_bookmarks_to_pdf(
-                pdfname, filecat, catdict, warninglist, remove_prefix="SpeciesConc_"
+                pdfname, filecat, catdict, warninglist, remove_prefix=species_prefix
             )
 
             # Strat_ZonalMean plots will use a log-pressure Y-axis, with
@@ -3661,7 +3661,7 @@ def make_benchmark_conc_plots(
                 cmpres=cmpres
             )
             add_nested_bookmarks_to_pdf(
-                pdfname, filecat, catdict, warninglist, remove_prefix="SpeciesConc_"
+                pdfname, filecat, catdict, warninglist, remove_prefix=species_prefix
             )
 
         # ==============================================================
