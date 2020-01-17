@@ -12,7 +12,7 @@ import xesmf as xe
 from .grid.horiz import make_grid_LL,  make_grid_SG
 
 
-def sg_spec_to_str(stretch_factor: float, target_lat: float, target_lon: float):
+def sg_hash(stretch_factor: float, target_lat: float, target_lon: float):
     return hashlib.sha1('sf={stretch_factor:.5f},tx={target_lon:.5f},ty={target_lat:.5f}'.format(
         stretch_factor=stretch_factor,
         target_lat=target_lat,
@@ -28,6 +28,7 @@ def make_regridder_L2S(llres_in, csres_out, stretch_factor, target_lat, target_l
         weightsfile = os.path.join(weightsdir, 'conservative_{llres_in}_sg{csres_out}_{sg_hash}_{face_num}.nc'.format(
             llres_in=llres_in,
             csres_out=csres_out,
+            sg_hash=sg_hash(stretch_factor, target_lat, target_lon),
             face_num=i
         ))
         reuse_weights = os.path.exists(weightsfile)
@@ -83,7 +84,6 @@ if __name__ == '__main__':
     csres = args.cs_res[0]
     target_lat = args.target_lat[0]
     target_lon = args.target_lon[0]
-    sim = args.sim[0]
     llres = args.llres[0]
 
     # Open the input dataset
@@ -101,7 +101,7 @@ if __name__ == '__main__':
     ds_out.attrs['history'] = datetime.now().strftime('%c:') + ' '.join(sys.argv) + '\n' + ds_out.attrs['history']
 
     # Drop variables depending on simulation type
-    if sim == 'Standard':
+    if 'AREA' in ds_in.variables:
         ds_out = ds_out.drop(['AREA'])
 
     # Drop lat and lon
@@ -129,6 +129,6 @@ if __name__ == '__main__':
 
     # Write dataset
     ds_out.to_netcdf(
-        f'initial_GEOSChem_rst.c{csres}_{sg_spec_to_str(stretch_factor, target_lat, target_lon)}_{sim}.nc',
+        'initial_restart_file.nc',
         format='NETCDF4_CLASSIC'
     )
