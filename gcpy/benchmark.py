@@ -3591,7 +3591,9 @@ def make_benchmark_conc_plots(
                 sigdiff_list=diff_500,
                 ref_sg_params=ref_sg_params,
                 dev_sg_params=dev_sg_params,
-                cmpres=cmpres
+                cmpres=cmpres,
+                x_extent=x_extent,
+                y_extent=y_extent,
             )
             diff_500[:] = [v.replace("SpeciesConc_", "") for v in diff_500]
             add_nested_bookmarks_to_pdf(
@@ -3714,6 +3716,8 @@ def make_benchmark_emis_plots(
     ref_sg_params=None,
     dev_sg_params=None,
     cmpres=None,
+    x_extent=None,
+    y_extent=None,
 ):
     """
     Creates PDF files containing plots of emissions for model
@@ -3892,7 +3896,9 @@ def make_benchmark_emis_plots(
             extra_title_txt=extra_title_txt,
             ref_sg_params=ref_sg_params,
             dev_sg_params=dev_sg_params,
-            cmpres=cmpres
+            cmpres=cmpres,
+            x_extent=x_extent,
+            y_extent=y_extent,
         )
         add_bookmarks_to_pdf(pdfname, varlist, remove_prefix="Emis", verbose=verbose)
         return
@@ -3958,7 +3964,9 @@ def make_benchmark_emis_plots(
                 sigdiff_list=diff_emis,
                 ref_sg_params=ref_sg_params,
                 dev_sg_params=dev_sg_params,
-                cmpres=cmpres
+                cmpres=cmpres,
+                x_extent=x_extent,
+                y_extent=y_extent,
             )
             add_bookmarks_to_pdf(
                 pdfname, varnames, remove_prefix="Emis", verbose=verbose
@@ -4055,7 +4063,9 @@ def make_benchmark_emis_plots(
                 extra_title_txt=extra_title_txt,
                 ref_sg_params=ref_sg_params,
                 dev_sg_params=dev_sg_params,
-                cmpres=cmpres
+                cmpres=cmpres,
+                x_extent=x_extent,
+                y_extent=y_extent,
             )
             add_nested_bookmarks_to_pdf(pdfname, filecat, emisdict, warninglist)
 
@@ -4220,6 +4230,8 @@ def make_benchmark_jvalue_plots(
     ref_sg_params=None,
     dev_sg_params=None,
     cmpres=None,
+    x_extent=None,
+    y_extent=None,
 ):
     """
     Creates PDF files containing plots of J-values for model
@@ -4443,7 +4455,9 @@ def make_benchmark_jvalue_plots(
             sigdiff_list=diff_sfc,
             ref_sg_params=ref_sg_params,
             dev_sg_params=dev_sg_params,
-            cmpres=cmpres
+            cmpres=cmpres,
+            x_extent=x_extent,
+            y_extent=y_extent,
         )
         diff_sfc[:] = [v.replace(prefix, "") for v in diff_sfc]
         add_bookmarks_to_pdf(pdfname, varlist, remove_prefix=prefix, verbose=verbose)
@@ -4471,7 +4485,9 @@ def make_benchmark_jvalue_plots(
             sigdiff_list=diff_500,
             ref_sg_params=ref_sg_params,
             dev_sg_params=dev_sg_params,
-            cmpres=cmpres
+            cmpres=cmpres,
+            x_extent=x_extent,
+            y_extent=y_extent,
         )
         diff_500[:] = [v.replace(prefix, "") for v in diff_500]
         add_bookmarks_to_pdf(pdfname, varlist, remove_prefix=prefix, verbose=verbose)
@@ -4582,6 +4598,8 @@ def make_benchmark_aod_plots(
     ref_sg_params=None,
     dev_sg_params=None,
     cmpres=None,
+    x_extent=None,
+    y_extent=None,
 ):
     """
     Creates PDF files containing plots of column aerosol optical
@@ -4834,7 +4852,9 @@ def make_benchmark_aod_plots(
         sigdiff_list=diff_aod,
         ref_sg_params=ref_sg_params,
         dev_sg_params=dev_sg_params,
-        cmpres=cmpres
+        cmpres=cmpres,
+        x_extent=x_extent,
+        y_extent=y_extent,
     )
     diff_aod[:] = [v.replace("Column_AOD_", "") for v in diff_aod]
     add_bookmarks_to_pdf(
