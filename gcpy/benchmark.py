@@ -77,6 +77,8 @@ def compare_single_level(
     dev_sg_params=None,
     x_extent=None,
     y_extent=None,
+    dev_species_prefix='SpeciesConc_',
+    ref_species_prefix='SpeciesConc_'
 ):
     """
     Create single-level 3x2 comparison map plots for variables common 
@@ -395,27 +397,27 @@ def compare_single_level(
         if savepdf:
             print("{} ".format(ivar), end="")
         varname = varlist[ivar]
-        varndim_ref = refdata[varname].ndim
-        varndim_dev = devdata[varname].ndim
+        varndim_ref = refdata[ref_species_prefix + varname].ndim
+        varndim_dev = devdata[dev_species_prefix + varname].ndim
 
         # If units are mol/mol then convert to ppb
         conc_units = ["mol mol-1 dry", "mol/mol", "mol mol-1"]
-        if refdata[varname].units.strip() in conc_units:
-            refdata[varname].attrs["units"] = "ppbv"
-            refdata[varname].values = refdata[varname].values * 1e9
-        if devdata[varname].units.strip() in conc_units:
-            devdata[varname].attrs["units"] = "ppbv"
-            devdata[varname].values = devdata[varname].values * 1e9
+        if refdata[ref_species_prefix + varname].units.strip() in conc_units:
+            refdata[ref_species_prefix + varname].attrs["units"] = "ppbv"
+            refdata[ref_species_prefix + varname].values = refdata[ref_species_prefix + varname].values * 1e9
+        if devdata[dev_species_prefix + varname].units.strip() in conc_units:
+            devdata[dev_species_prefix + varname].attrs["units"] = "ppbv"
+            devdata[dev_species_prefix + varname].values = devdata[dev_species_prefix + varname].values * 1e9
 
         # Binary diagnostic concentrations have units ppbv. Change to ppb.
-        if refdata[varname].units.strip() == "ppbv":
-            refdata[varname].attrs["units"] = "ppb"
-        if devdata[varname].units.strip() == "ppbv":
-            devdata[varname].attrs["units"] = "ppb"
+        if refdata[ref_species_prefix + varname].units.strip() == "ppbv":
+            refdata[ref_species_prefix + varname].attrs["units"] = "ppb"
+        if devdata[dev_species_prefix + varname].units.strip() == "ppbv":
+            devdata[dev_species_prefix + varname].attrs["units"] = "ppb"
 
         # Check that units match
-        units_ref = refdata[varname].units.strip()
-        units_dev = devdata[varname].units.strip()
+        units_ref = refdata[ref_species_prefix + varname].units.strip()
+        units_dev = devdata[dev_species_prefix + varname].units.strip()
         if units_ref != units_dev:
             print_units_warning = True
             if print_units_warning:
@@ -439,38 +441,38 @@ def compare_single_level(
         # ==============================================================
 
         # Ref
-        vdims = refdata[varname].dims
+        vdims = refdata[ref_species_prefix + varname].dims
         if "time" in vdims and "lev" in vdims:
             if flip_ref:
-                ds_ref = refdata[varname].isel(time=itime, lev=71 - ilev)
+                ds_ref = refdata[ref_species_prefix + varname].isel(time=itime, lev=71 - ilev)
             else:
-                ds_ref = refdata[varname].isel(time=itime, lev=ilev)
+                ds_ref = refdata[ref_species_prefix + varname].isel(time=itime, lev=ilev)
         elif "time" not in vdims and "lev" in vdims:
             if flip_ref:
-                ds_ref = refdata[varname].isel(lev=71 - ilev)
+                ds_ref = refdata[ref_species_prefix + varname].isel(lev=71 - ilev)
             else:
-                ds_ref = refdata[varname].isel(lev=ilev)
+                ds_ref = refdata[ref_species_prefix + varname].isel(lev=ilev)
         elif "time" in vdims and "lev" not in vdims:
-            ds_ref = refdata[varname].isel(time=itime)
+            ds_ref = refdata[ref_species_prefix + varname].isel(time=itime)
         else:
             ds_ref = refdata[varname]
 
         # Dev
-        vdims = devdata[varname].dims
+        vdims = devdata[dev_species_prefix + varname].dims
         if "time" in vdims and "lev" in vdims:
             if flip_dev:
-                ds_dev = devdata[varname].isel(time=itime, lev=71 - ilev)
+                ds_dev = devdata[dev_species_prefix + varname].isel(time=itime, lev=71 - ilev)
             else:
-                ds_dev = devdata[varname].isel(time=itime, lev=ilev)
+                ds_dev = devdata[dev_species_prefix + varname].isel(time=itime, lev=ilev)
         elif "time" not in vdims and "lev" in vdims:
             if flip_dev:
-                ds_dev = devdata[varname].isel(lev=71 - ilev)
+                ds_dev = devdata[dev_species_prefix + varname].isel(lev=71 - ilev)
             else:
-                ds_dev = devdata[varname].isel(lev=ilev)
+                ds_dev = devdata[dev_species_prefix + varname].isel(lev=ilev)
         elif "time" in vdims and "lev" not in vdims:
-            ds_dev = devdata[varname].isel(time=itime)
+            ds_dev = devdata[dev_species_prefix + varname].isel(time=itime)
         else:
-            ds_dev = devdata[varname]
+            ds_dev = devdata[dev_species_prefix + varname]
 
         # ==============================================================
         # Reshape cubed sphere data if using MAPL v1.0.0+
@@ -478,14 +480,14 @@ def compare_single_level(
         # ==============================================================
 
         # ref
-        vdims = refdata[varname].dims
+        vdims = refdata[ref_species_prefix + varname].dims
         if "nf" in vdims and "Xdim" in vdims and "Ydim" in vdims:
             ds_ref = ds_ref.stack(lat=("nf", "Ydim"))
             ds_ref = ds_ref.rename({"Xdim": "lon"})
             ds_ref = ds_ref.transpose("lat", "lon")
 
         # dev
-        vdims = devdata[varname].dims
+        vdims = devdata[dev_species_prefix + varname].dims
         if "nf" in vdims and "Xdim" in vdims and "Ydim" in vdims:
             ds_dev = ds_dev.stack(lat=("nf", "Ydim"))
             ds_dev = ds_dev.rename({"Xdim": "lon"})
@@ -1254,53 +1256,53 @@ def compare_single_level(
         # =====================
         # Draw major grid boxes
         # =====================
-        draw_major_grid_boxes(ax0, regrid_list, color='red')
-        draw_major_grid_boxes(ax1, devgrid_list, color='red')
-        draw_major_grid_boxes(ax2, regrid_list, color='red')
-        draw_major_grid_boxes(ax3, devgrid_list, color='red')
-        draw_major_grid_boxes(ax4, regrid_list, color='red')
-        draw_major_grid_boxes(ax5, devgrid_list, color='red')
-
-        draw_region_of_study(ax0, x_extent, y_extent)
-        draw_region_of_study(ax1, x_extent, y_extent)
-        draw_region_of_study(ax2, x_extent, y_extent)
-        draw_region_of_study(ax3, x_extent, y_extent)
-        draw_region_of_study(ax4, x_extent, y_extent)
-        draw_region_of_study(ax5, x_extent, y_extent)
-
-        # ==============================================================
-        # Update the list of variables with significant differences.
-        # Criterion: abs(max(fracdiff)) > 0.1
-        # Do not include NaNs in the criterion, because these indicate
-        # places where fracdiff could not be computed (div-by-zero).
-        # ==============================================================
-        if np.abs(np.nanmax(fracdiff)) > 0.1:
-            sigdiff_list.append(varname)
-
-
-
-        # plt.figure(figsize=[12, 14])
-        x_idx_0 = (np.abs(cmpgrid['lon'] - x_extent[0])).argmin()
-        x_idx_1 = (np.abs(cmpgrid['lon'] - x_extent[1])).argmin()
-        y_idx_0 = (np.abs(cmpgrid['lat'] - y_extent[0])).argmin()
-        y_idx_1 = (np.abs(cmpgrid['lat'] - y_extent[1])).argmin()
-        ref_value = np.array(ds_ref_cmp)[x_idx_0:x_idx_1, y_idx_0:y_idx_1]
-        dev_value = np.array(ds_dev_cmp)[x_idx_0:x_idx_1, y_idx_0:y_idx_1]
-        ax6.scatter(ref_value, dev_value)
-        ax6.set_xlabel('Ref [{}]'.format(units))
-        ax6.set_ylabel('Dev [{}]'.format(units))
-        ax6.set_aspect('equal', adjustable='box')
-        min_value = min(ref_value.min(), dev_value.min())
-        max_value = max(ref_value.max(), dev_value.max())
-        space = min_value*0.05
-        ax6.plot([0, max_value+space], [0, max_value+space], color='black')
-        ax6.set_xlim([min_value-space, max_value+space])
-        ax6.set_ylim([min_value-space, max_value+space])
-        ax6.set_xticks([min_value, (max_value - min_value)*1/3 + min_value, (max_value - min_value)*2/3 + min_value, max_value])
-        ax6.set_yticks([min_value, (max_value - min_value)*1/3 + min_value, (max_value - min_value)*2/3 + min_value, max_value])
-        ax6.ticklabel_format(scilimits=(-2,3))
-        ax6.set_aspect('equal', adjustable='box')
-        ax6.set_title("{} regridded to {} in region of interest".format(varname, cmpres))
+        # draw_major_grid_boxes(ax0, regrid_list, color='red')
+        # draw_major_grid_boxes(ax1, devgrid_list, color='red')
+        # draw_major_grid_boxes(ax2, regrid_list, color='red')
+        # draw_major_grid_boxes(ax3, devgrid_list, color='red')
+        # draw_major_grid_boxes(ax4, regrid_list, color='red')
+        # draw_major_grid_boxes(ax5, devgrid_list, color='red')
+        #
+        # draw_region_of_study(ax0, x_extent, y_extent)
+        # draw_region_of_study(ax1, x_extent, y_extent)
+        # draw_region_of_study(ax2, x_extent, y_extent)
+        # draw_region_of_study(ax3, x_extent, y_extent)
+        # draw_region_of_study(ax4, x_extent, y_extent)
+        # draw_region_of_study(ax5, x_extent, y_extent)
+        #
+        # # ==============================================================
+        # # Update the list of variables with significant differences.
+        # # Criterion: abs(max(fracdiff)) > 0.1
+        # # Do not include NaNs in the criterion, because these indicate
+        # # places where fracdiff could not be computed (div-by-zero).
+        # # ==============================================================
+        # if np.abs(np.nanmax(fracdiff)) > 0.1:
+        #     sigdiff_list.append(varname)
+        #
+        #
+        #
+        # # plt.figure(figsize=[12, 14])
+        # x_idx_0 = (np.abs(cmpgrid['lon'] - x_extent[0])).argmin()
+        # x_idx_1 = (np.abs(cmpgrid['lon'] - x_extent[1])).argmin()
+        # y_idx_0 = (np.abs(cmpgrid['lat'] - y_extent[0])).argmin()
+        # y_idx_1 = (np.abs(cmpgrid['lat'] - y_extent[1])).argmin()
+        # ref_value = np.array(ds_ref_cmp)[x_idx_0:x_idx_1, y_idx_0:y_idx_1]
+        # dev_value = np.array(ds_dev_cmp)[x_idx_0:x_idx_1, y_idx_0:y_idx_1]
+        # ax6.scatter(ref_value, dev_value)
+        # ax6.set_xlabel('Ref [{}]'.format(units))
+        # ax6.set_ylabel('Dev [{}]'.format(units))
+        # ax6.set_aspect('equal', adjustable='box')
+        # min_value = min(ref_value.min(), dev_value.min())
+        # max_value = max(ref_value.max(), dev_value.max())
+        # space = min_value*0.05
+        # ax6.plot([0, max_value+space], [0, max_value+space], color='black')
+        # ax6.set_xlim([min_value-space, max_value+space])
+        # ax6.set_ylim([min_value-space, max_value+space])
+        # ax6.set_xticks([min_value, (max_value - min_value)*1/3 + min_value, (max_value - min_value)*2/3 + min_value, max_value])
+        # ax6.set_yticks([min_value, (max_value - min_value)*1/3 + min_value, (max_value - min_value)*2/3 + min_value, max_value])
+        # ax6.ticklabel_format(scilimits=(-2,3))
+        # ax6.set_aspect('equal', adjustable='box')
+        # ax6.set_title("{} regridded to {} in region of interest".format(varname, cmpres))
         #
         # if savepdf:
         #     pdf.savefig(plt.gcf())
@@ -3366,7 +3368,8 @@ def make_benchmark_conc_plots(
     sigdiff_files=None,
     ref_sg_params=None,
     dev_sg_params=None,
-    is_restart_file=False,
+    ref_species_prefix='SpeciesConc_',
+    dev_species_prefix='SpeciesConc_',
     cmpres=None,
     x_extent=None,
     y_extent=None,
@@ -3463,24 +3466,19 @@ def make_benchmark_conc_plots(
     # Get a list of variables that GCPy should not read
     skip_vars = core.skip_these_vars()
 
-    if is_restart_file:
-        species_prefix="SPC_"
-    else:
-        species_prefix="SpeciesConc_"
-
     # Ref dataset
     try:
         refds = xr.open_dataset(ref, drop_variables=skip_vars)
     except FileNotFoundError:
         raise FileNotFoundError("Could not find Ref file: {}".format(ref))
-    refds = core.add_lumped_species_to_dataset(refds, verbose=verbose, prefix=species_prefix)
+    refds = core.add_lumped_species_to_dataset(refds, verbose=verbose, prefix=ref_species_prefix)
 
     # Dev dataset
     try:
         devds = xr.open_dataset(dev, drop_variables=skip_vars)
     except FileNotFoundError:
         raise FileNotFoundError("Could not find Dev file: {}!".format(dev))
-    devds = core.add_lumped_species_to_dataset(devds, verbose=verbose, prefix=species_prefix)
+    devds = core.add_lumped_species_to_dataset(devds, verbose=verbose, prefix=dev_species_prefix)
 
     catdict = get_species_categories()
 
@@ -3517,11 +3515,10 @@ def make_benchmark_conc_plots(
         warninglist = []
         for subcat in catdict[filecat]:
             for spc in catdict[filecat][subcat]:
-                varname = species_prefix + spc
-                if varname not in refds.data_vars or varname not in devds.data_vars:
-                    warninglist.append(varname)
+                if (ref_species_prefix + spc) not in refds.data_vars or (dev_species_prefix + spc)not in devds.data_vars:
+                    warninglist.append(spc)
                     continue
-                varlist.append(varname)
+                varlist.append(spc)
         if warninglist != []:
             print(
                 "\n\nWarning: variables in {} category not in dataset: {}".format(
@@ -3559,11 +3556,13 @@ def make_benchmark_conc_plots(
                 cmpres=cmpres,
                 x_extent=x_extent,
                 y_extent=y_extent,
+                dev_species_prefix=dev_species_prefix,
+                ref_species_prefix=ref_species_prefix,
             )
-            diff_sfc[:] = [v.replace(species_prefix, "") for v in diff_sfc]
-            add_nested_bookmarks_to_pdf(
-                pdfname, filecat, catdict, warninglist, remove_prefix=species_prefix
-            )
+            #diff_sfc[:] = [v.replace(species_prefix, "") for v in diff_sfc]
+            #add_nested_bookmarks_to_pdf(
+            #    pdfname, filecat, catdict, warninglist, remove_prefix=species_prefix
+            #)
         # -----------------------
         # 500 hPa plots
         # -----------------------
@@ -3595,10 +3594,10 @@ def make_benchmark_conc_plots(
                 x_extent=x_extent,
                 y_extent=y_extent,
             )
-            diff_500[:] = [v.replace(species_prefix, "") for v in diff_500]
-            add_nested_bookmarks_to_pdf(
-                pdfname, filecat, catdict, warninglist, remove_prefix=species_prefix
-            )
+            #diff_500[:] = [v.replace(species_prefix, "") for v in diff_500]
+            #add_nested_bookmarks_to_pdf(
+            #    pdfname, filecat, catdict, warninglist, remove_prefix=species_prefix
+            #)
 
         # -----------------------
         # Zonal mean plots
@@ -3630,10 +3629,10 @@ def make_benchmark_conc_plots(
                 dev_sg_params=dev_sg_params,
                 cmpres=cmpres
             )
-            diff_zm[:] = [v.replace(species_prefix, "") for v in diff_zm]
-            add_nested_bookmarks_to_pdf(
-                pdfname, filecat, catdict, warninglist, remove_prefix=species_prefix
-            )
+            #diff_zm[:] = [v.replace(species_prefix, "") for v in diff_zm]
+            #add_nested_bookmarks_to_pdf(
+            #    pdfname, filecat, catdict, warninglist, remove_prefix=species_prefix
+            #)
 
             # Strat_ZonalMean plots will use a log-pressure Y-axis, with
             # a range of 1..100 hPa, as per GCSC request. (bmy, 8/13/19)
@@ -3660,9 +3659,9 @@ def make_benchmark_conc_plots(
                 dev_sg_params=dev_sg_params,
                 cmpres=cmpres
             )
-            add_nested_bookmarks_to_pdf(
-                pdfname, filecat, catdict, warninglist, remove_prefix=species_prefix
-            )
+            #add_nested_bookmarks_to_pdf(
+            #    pdfname, filecat, catdict, warninglist, remove_prefix=species_prefix
+            #)
 
         # ==============================================================
         # Write the list of species having significant differences,
