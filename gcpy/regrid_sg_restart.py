@@ -115,8 +115,8 @@ if __name__ == '__main__':
     # Transpose
     ds_out = ds_out.transpose('time', 'lev', 'lat', 'lon')
 
-    # Sort so that lev is in ascending order
-    ds_out = ds_out.sortby(['lev'], ascending=True)
+    # Sort so that lev is in descending order
+    ds_out = ds_out.sortby(['lev'], ascending=False)
 
     # Change to float32
     for v in ds_out.variables:
