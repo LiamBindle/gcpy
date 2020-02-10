@@ -77,6 +77,7 @@ def compare_single_level(
     dev_sg_params=None,
     x_extent=None,
     y_extent=None,
+    only_extent=False
 ):
     """
     Create single-level 3x2 comparison map plots for variables common 
@@ -572,31 +573,65 @@ def compare_single_level(
         # Get min and max values for use in the colorbars
         # ==============================================================
 
+        x_idx_0 = (np.abs(cmpgrid['lon'] - x_extent[0])).argmin()
+        x_idx_1 = (np.abs(cmpgrid['lon'] - x_extent[1])).argmin()
+        y_idx_0 = (np.abs(cmpgrid['lat'] - y_extent[0])).argmin()
+        y_idx_1 = (np.abs(cmpgrid['lat'] - y_extent[1])).argmin()
+        ref_value = np.array(ds_ref_cmp)[y_idx_0:y_idx_1, x_idx_0:x_idx_1]
+        dev_value = np.array(ds_dev_cmp)[y_idx_0:y_idx_1, x_idx_0:x_idx_1]
+
         # Ref
-        vmin_ref = float(ds_ref.data.min())
-        vmax_ref = float(ds_ref.data.max())
+        vmin_ref = float(ref_value.min()) * 0.9
+        vmax_ref = float(ref_value.max()) / 0.9
 
-        # Dev
-        vmin_dev = float(ds_dev.data.min())
-        vmax_dev = float(ds_dev.data.max())
+        if only_extent:
+            # Dev
+            vmin_dev = float(dev_value.min()) * 0.9
+            vmax_dev = float(dev_value.max()) / 0.9
 
-        # Comparison
-        if cmpgridtype == "cs":
-            vmin_ref_cmp = float(ds_ref_cmp.data.min())
-            vmax_ref_cmp = float(ds_ref_cmp.data.max())
-            vmin_dev_cmp = float(ds_dev_cmp.data.min())
-            vmax_dev_cmp = float(ds_dev_cmp.data.max())
-            vmin_cmp = np.min([vmin_ref_cmp, vmin_dev_cmp])
-            vmax_cmp = np.max([vmax_ref_cmp, vmax_dev_cmp])
+            # Comparison
+            if cmpgridtype == "cs":
+                vmin_ref_cmp = float(ref_value.min()) * 0.9
+                vmax_ref_cmp = float(ref_value.max()) / 0.9
+                vmin_dev_cmp = float(dev_value.min()) * 0.9
+                vmax_dev_cmp = float(dev_value.max()) / 0.9
+                vmin_cmp = np.min([vmin_ref_cmp, vmin_dev_cmp])
+                vmax_cmp = np.max([vmax_ref_cmp, vmax_dev_cmp])
+            else:
+                vmin_cmp = np.min([ref_value.min(), dev_value.min()])
+                vmax_cmp = np.max([ref_value.max(), dev_value.max()])
+
+            # Get overall min & max
+            vmin_abs = np.min([vmin_ref, vmin_dev, vmin_cmp])
+            vmax_abs = np.max([vmax_ref, vmax_dev, vmax_cmp])
+            if match_cbar:
+                [vmin, vmax] = [vmin_abs, vmax_abs]
         else:
-            vmin_cmp = np.min([ds_ref_cmp.min(), ds_dev_cmp.min()])
-            vmax_cmp = np.max([ds_ref_cmp.max(), ds_dev_cmp.max()])
+            # Ref
+            vmin_ref = float(ds_ref.data.min())
+            vmax_ref = float(ds_ref.data.max())
 
-        # Get overall min & max
-        vmin_abs = np.min([vmin_ref, vmin_dev, vmin_cmp])
-        vmax_abs = np.max([vmax_ref, vmax_dev, vmax_cmp])
-        if match_cbar:
-            [vmin, vmax] = [vmin_abs, vmax_abs]
+            # Dev
+            vmin_dev = float(ds_dev.data.min())
+            vmax_dev = float(ds_dev.data.max())
+
+            # Comparison
+            if cmpgridtype == "cs":
+                vmin_ref_cmp = float(ds_ref_cmp.data.min())
+                vmax_ref_cmp = float(ds_ref_cmp.data.max())
+                vmin_dev_cmp = float(ds_dev_cmp.data.min())
+                vmax_dev_cmp = float(ds_dev_cmp.data.max())
+                vmin_cmp = np.min([vmin_ref_cmp, vmin_dev_cmp])
+                vmax_cmp = np.max([vmax_ref_cmp, vmax_dev_cmp])
+            else:
+                vmin_cmp = np.min([ds_ref_cmp.min(), ds_dev_cmp.min()])
+                vmax_cmp = np.max([ds_ref_cmp.max(), ds_dev_cmp.max()])
+
+            # Get overall min & max
+            vmin_abs = np.min([vmin_ref, vmin_dev, vmin_cmp])
+            vmax_abs = np.max([vmax_ref, vmax_dev, vmax_cmp])
+            if match_cbar:
+                [vmin, vmax] = [vmin_abs, vmax_abs]
 
         if verbose:
             print("vmin_ref: {}".format(vmin_ref))
@@ -835,7 +870,7 @@ def compare_single_level(
 
         # Plot for either lat-lon or cubed-sphere
         ax1.coastlines()
-        if devgridtype == "ll":
+        if  devgridtype == "ll":
             # Set top title for lat-lon plot
             ax1.set_title("{} (Dev)".format(devstr))
 
@@ -1280,12 +1315,6 @@ def compare_single_level(
 
 
         # plt.figure(figsize=[12, 14])
-        x_idx_0 = (np.abs(cmpgrid['lon'] - x_extent[0])).argmin()
-        x_idx_1 = (np.abs(cmpgrid['lon'] - x_extent[1])).argmin()
-        y_idx_0 = (np.abs(cmpgrid['lat'] - y_extent[0])).argmin()
-        y_idx_1 = (np.abs(cmpgrid['lat'] - y_extent[1])).argmin()
-        ref_value = np.array(ds_ref_cmp)[x_idx_0:x_idx_1, y_idx_0:y_idx_1]
-        dev_value = np.array(ds_dev_cmp)[x_idx_0:x_idx_1, y_idx_0:y_idx_1]
         ax6.scatter(ref_value, dev_value)
         ax6.set_xlabel('Ref [{}]'.format(units))
         ax6.set_ylabel('Dev [{}]'.format(units))
@@ -1301,6 +1330,16 @@ def compare_single_level(
         ax6.ticklabel_format(scilimits=(-2,3))
         ax6.set_aspect('equal', adjustable='box')
         ax6.set_title("{} regridded to {} in region of interest".format(varname, cmpres))
+
+
+        # Get new clims
+        regional_vmin = min(ref_value.min(), dev_value.min())
+        regional_vmax = max(ref_value.max(), dev_value.max())
+
+        if only_extent:
+            for ax in [ax0, ax1, ax2, ax3, ax4, ax5]:
+                ax.set_extent((*x_extent, *y_extent))
+
         #
         # if savepdf:
         #     pdf.savefig(plt.gcf())
@@ -3559,6 +3598,38 @@ def make_benchmark_conc_plots(
                 cmpres=cmpres,
                 x_extent=x_extent,
                 y_extent=y_extent,
+            )
+            diff_sfc[:] = [v.replace(species_prefix, "") for v in diff_sfc]
+            add_nested_bookmarks_to_pdf(
+                pdfname, filecat, catdict, warninglist, remove_prefix=species_prefix
+            )
+
+            if subdst is not None:
+                pdfname = os.path.join(
+                    catdir, "{}_Surface_{}.pdf".format(filecat, subdst)
+                )
+            else:
+                pdfname = os.path.join(catdir, "{}_Surface_Zoomed.pdf".format(filecat))
+
+            diff_sfc = []
+            compare_single_level(
+                refds,
+                refstr,
+                devds,
+                devstr,
+                varlist=varlist,
+                ilev=0,
+                pdfname=pdfname,
+                use_cmap_RdBu=use_cmap_RdBu,
+                log_color_scale=log_color_scale,
+                extra_title_txt=extra_title_txt,
+                sigdiff_list=diff_sfc,
+                ref_sg_params=ref_sg_params,
+                dev_sg_params=dev_sg_params,
+                cmpres=cmpres,
+                x_extent=x_extent,
+                y_extent=y_extent,
+                only_extent=True
             )
             diff_sfc[:] = [v.replace(species_prefix, "") for v in diff_sfc]
             add_nested_bookmarks_to_pdf(
