@@ -3671,6 +3671,34 @@ def make_benchmark_conc_plots(
                 pdfname, filecat, catdict, warninglist, remove_prefix=species_prefix
             )
 
+            if subdst is not None:
+                pdfname = os.path.join(
+                    catdir, "{}_500hPa_{}.pdf".format(filecat, subdst)
+                )
+            else:
+                pdfname = os.path.join(catdir, "{}_500hPa_Zoomed.pdf".format(filecat))
+
+            diff_500 = []
+            compare_single_level(
+                refds,
+                refstr,
+                devds,
+                devstr,
+                varlist=varlist,
+                ilev=22,
+                pdfname=pdfname,
+                use_cmap_RdBu=use_cmap_RdBu,
+                log_color_scale=log_color_scale,
+                extra_title_txt=extra_title_txt,
+                sigdiff_list=diff_500,
+                ref_sg_params=ref_sg_params,
+                dev_sg_params=dev_sg_params,
+                cmpres=cmpres,
+                x_extent=x_extent,
+                y_extent=y_extent,
+                only_extent=True
+            )
+
         # -----------------------
         # Zonal mean plots
         # -----------------------
