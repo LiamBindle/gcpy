@@ -4000,6 +4000,26 @@ def make_benchmark_emis_plots(
             y_extent=y_extent,
         )
         add_bookmarks_to_pdf(pdfname, varlist, remove_prefix="Emis", verbose=verbose)
+
+        pdfname = os.path.join(emisdir, "Emissions_Zoomed.pdf")
+
+        compare_single_level(
+            refds,
+            refstr,
+            devds,
+            devstr,
+            varlist=varlist,
+            pdfname=pdfname,
+            log_color_scale=log_color_scale,
+            extra_title_txt=extra_title_txt,
+            ref_sg_params=ref_sg_params,
+            dev_sg_params=dev_sg_params,
+            cmpres=cmpres,
+            x_extent=x_extent,
+            y_extent=y_extent,
+            only_extent=True
+        )
+        add_bookmarks_to_pdf(pdfname, varlist, remove_prefix="Emis", verbose=verbose)
         return
 
     # Get emissions variables (non-inventory), categories, and species
@@ -4066,6 +4086,31 @@ def make_benchmark_emis_plots(
                 cmpres=cmpres,
                 x_extent=x_extent,
                 y_extent=y_extent,
+            )
+            add_bookmarks_to_pdf(
+                pdfname, varnames, remove_prefix="Emis", verbose=verbose
+            )
+
+            pdfname = os.path.join(emisspcdir, "{}_Emissions_Zoomed.pdf".format(c))
+
+            diff_emis = []
+            compare_single_level(
+                refds,
+                refstr,
+                devds,
+                devstr,
+                varlist=varnames,
+                ilev=0,
+                pdfname=pdfname,
+                log_color_scale=log_color_scale,
+                extra_title_txt=extra_title_txt,
+                sigdiff_list=diff_emis,
+                ref_sg_params=ref_sg_params,
+                dev_sg_params=dev_sg_params,
+                cmpres=cmpres,
+                x_extent=x_extent,
+                y_extent=y_extent,
+                only_extent=True
             )
             add_bookmarks_to_pdf(
                 pdfname, varnames, remove_prefix="Emis", verbose=verbose
@@ -4165,6 +4210,27 @@ def make_benchmark_emis_plots(
                 cmpres=cmpres,
                 x_extent=x_extent,
                 y_extent=y_extent,
+            )
+            add_nested_bookmarks_to_pdf(pdfname, filecat, emisdict, warninglist)
+
+            compare_single_level(
+                refds,
+                refstr,
+                devds,
+                devstr,
+                varlist=varlist,
+                ilev=0,
+                pdfname=pdfname,
+                flip_ref=flip_ref,
+                flip_dev=flip_dev,
+                log_color_scale=log_color_scale,
+                extra_title_txt=extra_title_txt,
+                ref_sg_params=ref_sg_params,
+                dev_sg_params=dev_sg_params,
+                cmpres=cmpres,
+                x_extent=x_extent,
+                y_extent=y_extent,
+                only_extent=True
             )
             add_nested_bookmarks_to_pdf(pdfname, filecat, emisdict, warninglist)
 
