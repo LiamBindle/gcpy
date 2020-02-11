@@ -4213,6 +4213,7 @@ def make_benchmark_emis_plots(
             )
             add_nested_bookmarks_to_pdf(pdfname, filecat, emisdict, warninglist)
 
+            pdfname = os.path.join(catdir, "{}_Emissions_Zoomed.pdf".format(filecat))
             compare_single_level(
                 refds,
                 refstr,
