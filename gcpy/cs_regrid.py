@@ -115,7 +115,7 @@ if __name__ == '__main__':
 
     oface_datasets = []
     for oface in tqdm(range(6)):
-        oface_regridded = [regridder(ds_in.isel(face=iface), keep_attrs=True) for iface, regridder in regridders[oface].items()]
+        oface_regridded = [regridder(ds_in.isel(face=iface).drop('face'), keep_attrs=True) for iface, regridder in regridders[oface].items()]
         oface_regridded = xr.concat(oface_regridded, dim='intersecting_ifaces').sum('intersecting_ifaces')
         oface_datasets.append(oface_regridded)
 
